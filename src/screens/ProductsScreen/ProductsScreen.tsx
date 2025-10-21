@@ -6,7 +6,10 @@ import {
   TouchableOpacity,
   Alert,
   RefreshControl,
+  Image,
 } from 'react-native';
+import { useTheme } from '../../contexts/ThemeContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { Product } from '../../types';
 import { getProducts, addProduct, updateProduct, deleteProduct } from '../../utils/storage';
 import ProductCard from '../../components/ProductCard';
@@ -15,6 +18,8 @@ import { styles } from './styles';
 import { globalStyles } from '../../styles/globalStyles';
 
 export const ProductsScreen: React.FC = () => {
+  const { colors: themeColors } = useTheme();
+  const { t } = useLanguage();
   const [products, setProducts] = useState<Product[]>([]);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -29,7 +34,7 @@ export const ProductsScreen: React.FC = () => {
       const loadedProducts = await getProducts();
       setProducts(loadedProducts);
     } catch (error) {
-      Alert.alert('Error', 'No se pudieron cargar los productos');
+      Alert.alert(t('common.error'), t('products.loadError'));
     }
   };
 
@@ -50,9 +55,14 @@ export const ProductsScreen: React.FC = () => {
   };
 
   const handleSaveProduct = async (productData: Partial<Product>): Promise<void> => {
+    console.log('ProductsScreen: handleSaveProduct called with:', productData);
+    console.log('ProductsScreen: editingProduct:', editingProduct);
+    
     try {
       if (editingProduct) {
+        console.log('ProductsScreen: Updating existing product');
         const updatedProduct = await updateProduct(editingProduct.id, productData);
+        console.log('ProductsScreen: Update result:', updatedProduct);
         if (updatedProduct) {
           setProducts(products.map(p => p.id === editingProduct.id ? updatedProduct : p));
           Alert.alert('Éxito', 'Producto actualizado correctamente');
@@ -60,13 +70,16 @@ export const ProductsScreen: React.FC = () => {
           Alert.alert('Error', 'No se pudo actualizar el producto');
         }
       } else {
+        console.log('ProductsScreen: Creating new product');
         // Validar que tenemos todos los campos requeridos
         if (!productData.name || !productData.price || productData.quantity === undefined) {
+          console.log('ProductsScreen: Missing required fields');
           Alert.alert('Error', 'Todos los campos son requeridos');
           return;
         }
 
         const newProducts = await addProduct(productData as Omit<Product, 'id' | 'createdAt'>);
+        console.log('ProductsScreen: Add result:', newProducts);
         if (newProducts && newProducts.length > 0) {
           setProducts(newProducts);
           Alert.alert('Éxito', 'Producto añadido correctamente');
@@ -76,6 +89,7 @@ export const ProductsScreen: React.FC = () => {
       }
       closeModal();
     } catch (error) {
+      console.error('ProductsScreen: Error saving product:', error);
       Alert.alert('Error', 'Ocurrió un error al guardar el producto');
     }
   };
@@ -119,21 +133,25 @@ export const ProductsScreen: React.FC = () => {
 
   const renderEmptyList = () => (
     <View style={styles.emptyContainer}>
-      <Text style={styles.emptyIcon}>📦</Text>
-      <Text style={styles.emptyTitle}>No hay productos</Text>
-      <Text style={styles.emptyText}>
-        Añade tu primer producto tocando el botón de abajo
+      <Image 
+        source={require('../../../assets/logoboc.png')} 
+        style={styles.emptyLogo}
+        resizeMode="contain"
+      />
+      <Text style={[styles.emptyTitle, { color: themeColors.text }]}>{t('products.empty.title')}</Text>
+      <Text style={[styles.emptyText, { color: themeColors.textSecondary }]}>
+        {t('products.empty.text')}
       </Text>
     </View>
   );
 
   return (
-    <View style={globalStyles.flex1}>
+    <View style={[globalStyles.flex1, { backgroundColor: themeColors.background }]}>
       <FlatList
         data={products}
         renderItem={renderProduct}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContainer}
+        contentContainerStyle={[styles.listContainer, { backgroundColor: themeColors.background }]}
         ListEmptyComponent={renderEmptyList}
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -142,10 +160,10 @@ export const ProductsScreen: React.FC = () => {
       />
 
       <TouchableOpacity
-        style={styles.fab}
+        style={[styles.fab, { backgroundColor: themeColors.primary }]}
         onPress={() => openModal()}
       >
-        <Text style={styles.fabText}>+</Text>
+        <Text style={[styles.fabText, { color: themeColors.white }]}>+</Text>
       </TouchableOpacity>
 
       <ProductForm

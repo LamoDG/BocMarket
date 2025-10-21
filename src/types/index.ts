@@ -137,6 +137,7 @@ export interface EmailResult extends ApiResponse {
 export interface ProductCardProps {
   product: Product;
   onAddToCart?: (productId: string, variantName?: string | null) => void;
+  onAddToCartWithQuantity?: (productId: string, quantity: number, variantName?: string | null) => void;
   onEdit?: (product: Product) => void;
   onDelete?: (productId: string) => void;
   showAddToCart?: boolean;
@@ -154,14 +155,14 @@ export interface CartProps {
 }
 
 export interface NavigationProps {
-  currentTab: 'products' | 'store' | 'register';
-  onTabChange: (tab: 'products' | 'store' | 'register') => void;
+  currentTab: 'products' | 'store' | 'register' | 'about';
+  onTabChange: (tab: 'products' | 'store' | 'register' | 'about') => void;
   children: React.ReactNode;
 }
 
 // Utility Types
 export type PaymentMethod = 'efectivo' | 'tarjeta';
-export type TabType = 'products' | 'store' | 'register';
+export type TabType = 'products' | 'store' | 'register' | 'about';
 
 // Store Screen Types
 export interface StoreScreenState {

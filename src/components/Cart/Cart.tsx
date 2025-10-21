@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, FlatList } from 'react-native';
 import { CartItem as CartItemType, Product, PaymentMethod } from '../../types';
 import { CartItem } from './CartItem';
 import { showPaymentModal } from '../../screens/StoreScreen/components/PaymentModals';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { styles } from './styles';
 
 interface CartProps {
@@ -26,6 +27,8 @@ export const Cart: React.FC<CartProps> = ({
   onCheckout, 
   total 
 }) => {
+  const { t } = useLanguage();
+  
   const cartWithProducts: CartItemWithProduct[] = cart
     .map(cartItem => ({
       ...cartItem,
@@ -45,9 +48,9 @@ export const Cart: React.FC<CartProps> = ({
   const renderEmptyCart = () => (
     <View style={styles.emptyCart}>
       <Text style={styles.emptyCartIcon}>🛒</Text>
-      <Text style={styles.emptyCartTitle}>Carrito vacío</Text>
+      <Text style={styles.emptyCartTitle}>{t('store.cartEmpty')}</Text>
       <Text style={styles.emptyCartText}>
-        Añade productos desde la tienda para comenzar tu compra
+        {t('store.cartEmptyDescription')}
       </Text>
     </View>
   );
@@ -91,9 +94,9 @@ export const Cart: React.FC<CartProps> = ({
   return (
     <View style={styles.cartContainer}>
       <View style={styles.cartHeader}>
-        <Text style={styles.cartTitle}>🛒 Tu Carrito</Text>
+        <Text style={styles.cartTitle}>🛒 {t('store.cartTitle')}</Text>
         <Text style={styles.cartCount}>
-          {cart.length} producto{cart.length !== 1 ? 's' : ''}
+          {cart.length} {cart.length !== 1 ? t('store.products') : t('store.product')}
         </Text>
       </View>
 
@@ -107,7 +110,7 @@ export const Cart: React.FC<CartProps> = ({
 
       <View style={styles.cartFooter}>
         <View style={styles.totalContainer}>
-          <Text style={styles.totalLabel}>Total:</Text>
+          <Text style={styles.totalLabel}>{t('store.total')}:</Text>
           <Text style={styles.totalAmount}>€{total.toFixed(2)}</Text>
         </View>
         
@@ -115,7 +118,7 @@ export const Cart: React.FC<CartProps> = ({
           style={styles.checkoutButton}
           onPress={handleCheckout}
         >
-          <Text style={styles.checkoutButtonText}>💳 Finalizar Compra</Text>
+          <Text style={styles.checkoutButtonText}>{t('store.checkoutButton')}</Text>
         </TouchableOpacity>
       </View>
     </View>

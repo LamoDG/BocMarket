@@ -7,6 +7,8 @@ import {
   Alert,
   RefreshControl,
 } from 'react-native';
+import { useTheme } from '../../contexts/ThemeContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import {
   getProducts,
   getCart,
@@ -25,6 +27,8 @@ import { styles } from './styles';
 import type { Product, CartItem, PaymentMethod, StoreScreenState } from '../../types';
 
 const StoreScreen: React.FC = () => {
+  const { colors } = useTheme();
+  const { t } = useLanguage();
   const [products, setProducts] = useState<Product[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [showCart, setShowCart] = useState<boolean>(false);
@@ -46,7 +50,7 @@ const StoreScreen: React.FC = () => {
       setProducts(loadedProducts);
     } catch (error) {
       console.error('Error loading products:', error);
-      Alert.alert('Error', 'No se pudieron cargar los productos');
+      Alert.alert(t('common.error'), t('error.loadProducts'));
     }
   };
 
@@ -74,16 +78,34 @@ const StoreScreen: React.FC = () => {
     }, 0);
   };
 
+  const calculateTotalQuantity = (): number => {
+    return cart.reduce((total, cartItem) => total + cartItem.quantity, 0);
+  };
+
   const handleAddToCart = async (productId: string, variantName?: string): Promise<void> => {
     try {
       const updatedCart = await addToCart(productId, 1, variantName);
       if (updatedCart) {
         setCart(updatedCart);
-        Alert.alert('Producto añadido', 'El producto se ha añadido al carrito');
+        // Feedback visual sutil sin modal molesto
+        console.log('✅ Producto añadido al carrito');
       }
     } catch (error) {
       console.error('Error adding to cart:', error);
-      Alert.alert('Error', 'No se pudo añadir el producto al carrito');
+      Alert.alert(t('common.error'), t('error.addToCart'));
+    }
+  };
+
+  const handleAddToCartWithQuantity = async (productId: string, quantity: number, variantName?: string): Promise<void> => {
+    try {
+      const updatedCart = await addToCart(productId, quantity, variantName);
+      if (updatedCart) {
+        setCart(updatedCart);
+        console.log(`✅ ${quantity} producto(s) añadido(s) al carrito`);
+      }
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      Alert.alert(t('common.error'), t('error.addToCart'));
     }
   };
 
@@ -332,6 +354,7 @@ const StoreScreen: React.FC = () => {
           onEdit={() => {}} // No se edita desde la tienda
           onDelete={() => {}} // No se elimina desde la tienda
           onAddToCart={handleAddToCart}
+          onAddToCartWithQuantity={handleAddToCartWithQuantity}
           showAddToCart={true}
           cartQuantity={cartQuantity}
         />
@@ -342,8 +365,8 @@ const StoreScreen: React.FC = () => {
   const renderEmptyList = (): React.JSX.Element => (
     <View style={styles.emptyContainer}>
       <Text style={styles.emptyIcon}>🏪</Text>
-      <Text style={styles.emptyTitle}>Tienda vacía</Text>
-      <Text style={styles.emptyText}>
+      <Text style={[styles.emptyTitle, { color: colors.text }]}>{t('store.empty')}</Text>
+      <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
         No hay productos disponibles en este momento.{'\n'}
         Añade productos desde la sección de gestión para comenzar a vender.
       </Text>
@@ -364,17 +387,17 @@ const StoreScreen: React.FC = () => {
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>🏪 Tienda</Text>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>🏪 {t('store.title')}</Text>
         <TouchableOpacity
           style={styles.cartButton}
           onPress={() => setShowCart(true)}
         >
-          <Text style={styles.cartButtonText}>🛒 Carrito</Text>
-          {cart.length > 0 && (
+          <Text style={styles.cartButtonText}>🛒 {t('store.cart')}</Text>
+          {calculateTotalQuantity() > 0 && (
             <View style={styles.cartBadge}>
-              <Text style={styles.cartBadgeText}>{cart.length}</Text>
+              <Text style={styles.cartBadgeText}>{calculateTotalQuantity()}</Text>
             </View>
           )}
         </TouchableOpacity>

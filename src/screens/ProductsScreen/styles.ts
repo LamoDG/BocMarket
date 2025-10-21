@@ -12,6 +12,16 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: spacing.xl,
   },
+  emptyLogo: {
+    width: 100,
+    height: 100,
+    marginBottom: spacing.lg,
+    marginTop: 8,
+    opacity: 0.6,
+    borderRadius: 50,
+    backgroundColor: '#000000',
+    padding: 8,
+  },
   emptyIcon: {
     fontSize: 64,
     marginBottom: spacing.lg,

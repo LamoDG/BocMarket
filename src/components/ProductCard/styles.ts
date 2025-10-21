@@ -171,8 +171,11 @@ export const styles = StyleSheet.create({
     backgroundColor: colors.lightGray + '30',
   },
   variantOptionRow: {
-    ...globalStyles.row,
-    ...globalStyles.spaceBetween,
+    flexDirection: 'column',
+    gap: spacing.sm,
+  },
+  variantInfo: {
+    flex: 1,
   },
   variantOptionText: {
     fontSize: typography.md,
@@ -183,6 +186,37 @@ export const styles = StyleSheet.create({
     color: colors.gray,
   },
   variantOptionStock: {
+    fontSize: typography.sm,
+    fontWeight: '600',
+  },
+  quantityControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    justifyContent: 'center',
+  },
+  quantityButton: {
+    backgroundColor: colors.primary,
+    width: 36,
+    height: 36,
+    borderRadius: borderRadius.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  quantityButtonText: {
+    color: colors.white,
+    fontSize: typography.md,
+    fontWeight: 'bold',
+  },
+  addButton: {
+    backgroundColor: colors.success,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.md,
+    marginLeft: spacing.sm,
+  },
+  addButtonText: {
+    color: colors.white,
     fontSize: typography.sm,
     fontWeight: '600',
   },

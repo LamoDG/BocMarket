@@ -19,11 +19,24 @@ export const styles = StyleSheet.create({
   headerLeft: {
     flex: 1,
   },
+  titleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.xs,
+  },
+  logo: {
+    width: 40,
+    height: 40,
+    marginRight: spacing.sm,
+    marginTop: 4,
+    borderRadius: 20,
+    backgroundColor: '#000000',
+    padding: 4,
+  },
   title: {
     fontSize: typography.xxl,
     fontWeight: 'bold',
     color: colors.dark,
-    marginBottom: spacing.xs,
   },
   dateText: {
     fontSize: typography.md,
@@ -178,6 +191,11 @@ export const styles = StyleSheet.create({
     fontSize: typography.md,
     color: colors.dark,
     flex: 1,
+  },
+  variantText: {
+    fontSize: typography.sm,
+    color: colors.primary,
+    fontStyle: 'italic',
   },
   productDetails: {
     fontSize: typography.md,

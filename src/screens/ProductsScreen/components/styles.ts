@@ -12,14 +12,14 @@ export const styles = StyleSheet.create({
   modalContainer: {
     width: '100%',
     maxWidth: 400,
-    maxHeight: '90%',
+    height: '80%',
   },
   modalContent: {
     backgroundColor: colors.white,
     borderRadius: borderRadius.lg,
     padding: spacing.lg,
-    flex: 1,
-    maxHeight: '100%',
+    height: '100%',
+    minHeight: 500,
   },
   modalTitle: {
     fontSize: typography.xl,
@@ -29,8 +29,9 @@ export const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   formScrollView: {
-    flex: 1,
+    flexGrow: 1,
     marginBottom: spacing.lg,
+    minHeight: 300,
   },
   form: {
     paddingBottom: spacing.md,
@@ -93,11 +94,13 @@ export const styles = StyleSheet.create({
     padding: spacing.md,
     backgroundColor: colors.light,
     borderRadius: borderRadius.md,
+    width: '100%',
   },
   variantInputs: {
     flex: 1,
     flexDirection: 'row',
     gap: spacing.sm,
+    marginRight: spacing.sm,
   },
   variantNameContainer: {
     flex: 2,
@@ -123,12 +126,12 @@ export const styles = StyleSheet.create({
   },
   removeVariantButton: {
     backgroundColor: colors.danger,
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: spacing.sm,
+    alignSelf: 'flex-start',
   },
   removeVariantText: {
     color: colors.white,

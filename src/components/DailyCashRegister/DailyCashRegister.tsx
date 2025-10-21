@@ -7,17 +7,23 @@ import {
   Alert,
   Share,
   Platform,
+  Image,
 } from 'react-native';
+import { useTheme } from '../../contexts/ThemeContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { colors } from '../../styles/globalStyles';
 import { getDailySalesReport, exportDailySalesCSV } from '../../utils/storage';
 import { StatCard } from './components/StatCard';
 import { SaleItem } from './components/SaleItem';
 import { TopProducts } from './components/TopProducts';
+import { ThemeToggle } from '../ThemeToggle';
 import ReturnsScreen from '../../screens/ReturnsScreen';
 import { styles } from './styles';
 import type { DailyReport } from '../../types';
 
 const DailyCashRegister: React.FC = () => {
+  const { colors: themeColors } = useTheme();
+  const { t } = useLanguage();
   const [report, setReport] = useState<DailyReport | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [showReturns, setShowReturns] = useState<boolean>(false);
@@ -45,7 +51,7 @@ const DailyCashRegister: React.FC = () => {
       setReport(dailyReport);
     } catch (error) {
       console.error('Error al cargar reporte diario:', error);
-      Alert.alert('Error', 'No se pudo cargar el reporte diario');
+      Alert.alert(t('common.error'), t('register.loadError'));
     }
     setLoading(false);
   };
@@ -91,10 +97,9 @@ const DailyCashRegister: React.FC = () => {
   const renderEmptyState = (): React.JSX.Element => (
     <View style={styles.emptyContainer}>
       <Text style={styles.emptyIcon}>📊</Text>
-      <Text style={styles.emptyTitle}>Sin ventas</Text>
+      <Text style={styles.emptyTitle}>{t('register.noSales')}</Text>
       <Text style={styles.emptyText}>
-        No hay ventas registradas para esta fecha.{'\n'}
-        Las ventas aparecerán aquí en tiempo real.
+        {t('register.noSalesText')}
       </Text>
     </View>
   );
@@ -102,17 +107,17 @@ const DailyCashRegister: React.FC = () => {
   const renderLoadingState = (): React.JSX.Element => (
     <View style={styles.loadingContainer}>
       <Text style={styles.emptyIcon}>⏳</Text>
-      <Text style={styles.loadingText}>Cargando reporte...</Text>
+      <Text style={styles.loadingText}>{t('register.loading')}</Text>
     </View>
   );
 
   if (loading && !report) {
     return (
-      <View style={styles.container}>
-        <View style={styles.header}>
+      <View style={[styles.container, { backgroundColor: themeColors.background }]}>
+        <View style={[styles.header, { backgroundColor: themeColors.surface, borderBottomColor: themeColors.border }]}>
           <View style={styles.headerLeft}>
-            <Text style={styles.title}>📊 Caja del Día</Text>
-            <Text style={styles.dateText}>
+            <Text style={[styles.title, { color: themeColors.text }]}>📊 Caja del Día</Text>
+            <Text style={[styles.dateText, { color: themeColors.textSecondary }]}>
               {new Date(selectedDate).toLocaleDateString('es-ES', {
                 weekday: 'long',
                 year: 'numeric',
@@ -129,11 +134,11 @@ const DailyCashRegister: React.FC = () => {
 
   if (!report || report.salesCount === 0) {
     return (
-      <View style={styles.container}>
-        <View style={styles.header}>
+      <View style={[styles.container, { backgroundColor: themeColors.background }]}>
+        <View style={[styles.header, { backgroundColor: themeColors.surface, borderBottomColor: themeColors.border }]}>
           <View style={styles.headerLeft}>
-            <Text style={styles.title}>📊 Caja del Día</Text>
-            <Text style={styles.dateText}>
+            <Text style={[styles.title, { color: themeColors.text }]}>📊 Caja del Día</Text>
+            <Text style={[styles.dateText, { color: themeColors.textSecondary }]}>
               {new Date(selectedDate).toLocaleDateString('es-ES', {
                 weekday: 'long',
                 year: 'numeric',
@@ -149,11 +154,18 @@ const DailyCashRegister: React.FC = () => {
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
+    <View style={[styles.container, { backgroundColor: themeColors.background }]}>
+      <View style={[styles.header, { backgroundColor: themeColors.surface, borderBottomColor: themeColors.border }]}>
         <View style={styles.headerLeft}>
-          <Text style={styles.title}>📊 Caja del Día</Text>
-          <Text style={styles.dateText}>
+          <View style={styles.titleContainer}>
+            <Image 
+              source={require('../../../assets/logoboc.png')} 
+              style={styles.logo}
+              resizeMode="contain"
+            />
+            <Text style={[styles.title, { color: themeColors.text }]}>{t('register.title')}</Text>
+          </View>
+          <Text style={[styles.dateText, { color: themeColors.textSecondary }]}>
             {new Date(selectedDate).toLocaleDateString('es-ES', {
               weekday: 'long',
               year: 'numeric',
@@ -164,42 +176,42 @@ const DailyCashRegister: React.FC = () => {
         </View>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView style={[styles.content, { backgroundColor: themeColors.background }]} showsVerticalScrollIndicator={false}>
         {/* Estadísticas principales */}
         <View style={styles.statsContainer}>
           <StatCard
-            title="Ventas Totales"
+            title={t('register.totalSales')}
             value={report.totalSales.toString()}
-            subtitle="transacciones"
+            subtitle={t('register.transactions')}
             icon="🛒"
-            color={colors.primary}
+            color={themeColors.primary}
           />
           
           <StatCard
-            title="Ingresos Totales"
+            title={t('register.totalRevenue')}
             value={`€${report.totalAmount.toFixed(2)}`}
-            subtitle={`${report.totalItems} artículos`}
+            subtitle={`${report.totalItems} ${t('register.items')}`}
             icon="💰"
-            color={colors.success}
+            color={themeColors.success}
           />
         </View>
 
         {/* Métodos de pago */}
         <View style={styles.statsContainer}>
           <StatCard
-            title="Efectivo"
+            title={t('register.cash')}
             value={`€${report.paymentMethods.efectivo.toFixed(2)}`}
             subtitle={`${((report.paymentMethods.efectivo / report.totalAmount) * 100 || 0).toFixed(1)}%`}
             icon="💵"
-            color={colors.warning}
+            color={themeColors.warning}
           />
           
           <StatCard
-            title="Tarjeta"
+            title={t('register.card')}
             value={`€${report.paymentMethods.tarjeta.toFixed(2)}`}
             subtitle={`${((report.paymentMethods.tarjeta / report.totalAmount) * 100 || 0).toFixed(1)}%`}
             icon="💳"
-            color={colors.secondary}
+            color={themeColors.secondary}
           />
         </View>
 
@@ -209,7 +221,7 @@ const DailyCashRegister: React.FC = () => {
         {/* Lista de ventas */}
         {report.sales.length > 0 && (
           <>
-            <Text style={styles.sectionTitle}>💰 Ventas del día</Text>
+            <Text style={[styles.sectionTitle, { color: themeColors.text }]}>{t('register.sales')}</Text>
             <View style={styles.salesList}>
               {report.sales.map((sale, index) => (
                 <SaleItem key={sale.id || index} sale={sale} />
@@ -217,23 +229,29 @@ const DailyCashRegister: React.FC = () => {
             </View>
           </>
         )}
+
+        {/* Configuración de tema */}
+        <Text style={[styles.sectionTitle, { color: themeColors.text }]}>{t('register.configuration')}</Text>
+        <View style={{ paddingHorizontal: 16 }}>
+          <ThemeToggle />
+        </View>
       </ScrollView>
 
       {/* Barra de acciones fija en la parte inferior */}
-      <View style={styles.bottomActionBar}>
+      <View style={[styles.bottomActionBar, { backgroundColor: themeColors.surface, borderTopColor: themeColors.border }]}>
         <TouchableOpacity
-          style={[styles.actionButton, styles.exportButton]}
+          style={[styles.actionButton, styles.exportButton, { backgroundColor: themeColors.primary }]}
           onPress={handleExportCSV}
           disabled={loading}
         >
-          <Text style={styles.actionButtonText}>📊 Exportar</Text>
+          <Text style={[styles.actionButtonText, { color: themeColors.white }]}>{t('register.export')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.actionButton, styles.returnsButton]}
+          style={[styles.actionButton, styles.returnsButton, { backgroundColor: themeColors.secondary }]}
           onPress={() => setShowReturns(true)}
         >
-          <Text style={styles.actionButtonText}>🔄 Devoluciones</Text>
+          <Text style={[styles.actionButtonText, { color: themeColors.white }]}>{t('register.returns')}</Text>
         </TouchableOpacity>
       </View>
 
