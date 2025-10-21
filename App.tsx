@@ -4,12 +4,17 @@ import { AppState as RNAppState, Alert, View, Text } from 'react-native';
 import Navigation from './src/components/Navigation';
 import ProductsScreen from './src/screens/ProductsScreen';
 import StoreScreen from './src/screens/StoreScreen';
+import { AboutScreen } from './src/screens/AboutScreen';
 import DailyCashRegister from './src/components/DailyCashRegister';
+import { ThemeProvider, useTheme } from './src/contexts/ThemeContext';
+import { LanguageProvider, useLanguage } from './src/contexts/LanguageContext';
 import { initializeDefaultData, saveAppState, createBackup, getAppState } from './src/utils/storage';
 import { colors, globalStyles } from './src/styles/globalStyles';
 import type { TabType } from './src/types';
 
-export default function App(): React.JSX.Element {
+const AppContent: React.FC = () => {
+  const { colors: themeColors } = useTheme();
+  const { t } = useLanguage();
   const [currentTab, setCurrentTab] = useState<TabType>('products');
   const [appReady, setAppReady] = useState<boolean>(false);
 
@@ -93,6 +98,8 @@ export default function App(): React.JSX.Element {
         return <StoreScreen />;
       case 'register':
         return <DailyCashRegister />;
+      case 'about':
+        return <AboutScreen />;
       default:
         return <ProductsScreen />;
     }
@@ -102,15 +109,15 @@ export default function App(): React.JSX.Element {
   if (!appReady) {
     return (
       <>
-        <StatusBar style="dark" backgroundColor={colors.light} translucent={false} />
+        <StatusBar style="auto" backgroundColor={themeColors.background} translucent={false} />
         <Navigation currentTab={currentTab} onTabChange={setCurrentTab}>
-          <View style={[globalStyles.container, globalStyles.center]}>
+          <View style={[globalStyles.container, globalStyles.center, { backgroundColor: themeColors.background }]}>
             <Text style={{ fontSize: 48, marginBottom: 20 }}>🎵</Text>
-            <Text style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 10, color: colors.dark }}>
-              BocMarket
+            <Text style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 10, color: themeColors.text }}>
+              {t('about.title')}
             </Text>
-            <Text style={{ fontSize: 16, color: colors.gray }}>
-              Cargando tu tienda musical...
+            <Text style={{ fontSize: 16, color: themeColors.textSecondary }}>
+              {t('common.loading')}
             </Text>
           </View>
         </Navigation>
@@ -120,10 +127,20 @@ export default function App(): React.JSX.Element {
 
   return (
     <>
-      <StatusBar style="dark" backgroundColor={colors.light} translucent={false} />
+      <StatusBar style="auto" backgroundColor={themeColors.background} translucent={false} />
       <Navigation currentTab={currentTab} onTabChange={setCurrentTab}>
         {renderScreen()}
       </Navigation>
     </>
+  );
+};
+
+export default function App(): React.JSX.Element {
+  return (
+    <LanguageProvider>
+      <ThemeProvider>
+        <AppContent />
+      </ThemeProvider>
+    </LanguageProvider>
   );
 }

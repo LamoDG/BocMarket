@@ -1,20 +1,31 @@
 # BocMarket 🎵
 
-Una aplicación móvil React Native para gestionar la tienda de merchandising de un grupo musical. La aplicación funciona completamente offline usando almacenamiento local.
+Una aplicación móvil React Native **gratuita** creada por el **grupo de música BOC** para gestionar la tienda de merchandising de manera eficiente. La aplicación funciona completamente offline usando almacenamiento local.
 
-## Características
+## 🎸 Sobre BOC
+
+**BOC** es un grupo musical comprometido con la creación de música auténtica y la conexión directa con nuestros fans. Como parte de nuestro compromiso con la innovación, desarrollamos nuestras propias herramientas tecnológicas para mejorar tanto nuestra experiencia como artistas como la de nuestro público.
+
+### 🔗 Síguenos
+- **Spotify**: [Escucha nuestra música](https://open.spotify.com/artist/2PDFLRIcrPY7IhDWsaKXHO?si=8n0l3gZtRcufXrAYHDYZRA)
+- **Instagram**: [@boc.oficial](https://www.instagram.com/boc.oficial/)
+
+## ✨ Características
 
 ### 🏪 Gestión de Tienda
 - **Gestión de Productos**: Añadir, editar y eliminar productos con nombre, precio y cantidad
 - **Control de Inventario**: Seguimiento de stock con indicadores visuales para productos sin stock o con stock bajo
 - **Carrito de Compras**: Añadir productos al carrito y procesar compras
 - **Funcionamiento Offline**: Funciona sin conexión a internet usando AsyncStorage
+- **Caja Diaria**: Sistema completo de punto de venta con reportes en tiempo real
+- **Temas**: Modo claro y oscuro para una mejor experiencia visual
 
 ### 📱 Interfaz de Usuario
 - Diseño moderno y limpio optimizado para tablets y móviles
-- Navegación intuitiva entre gestión de productos y tienda
+- Navegación intuitiva entre gestión de productos, tienda, caja y sección BOC
 - Indicadores visuales claros para el estado del stock
 - Diseño responsivo para diferentes tamaños de pantalla
+- **Nueva sección BOC**: Información del grupo con enlaces directos a Spotify e Instagram
 
 ## Tecnologías Utilizadas
 
@@ -28,17 +39,22 @@ Una aplicación móvil React Native para gestionar la tienda de merchandising de
 BocMarket/
 ├── src/
 │   ├── components/
-│   │   ├── Navigation.js      # Navegación principal de la app
-│   │   ├── ProductCard.js     # Componente para mostrar productos
-│   │   └── Cart.js           # Componente del carrito de compras
+│   │   ├── Navigation/          # Navegación principal de la app
+│   │   ├── ProductCard/         # Componente para mostrar productos
+│   │   ├── Cart/               # Componente del carrito de compras
+│   │   ├── DailyCashRegister/  # Sistema de caja diaria
+│   │   └── ThemeToggle/        # Selector de temas
 │   ├── screens/
-│   │   ├── ProductsScreen.js  # Pantalla de gestión de productos
-│   │   └── StoreScreen.js     # Pantalla de la tienda
+│   │   ├── ProductsScreen/     # Pantalla de gestión de productos
+│   │   ├── StoreScreen/        # Pantalla de la tienda
+│   │   └── AboutScreen/        # Pantalla de información BOC
+│   ├── contexts/
+│   │   └── ThemeContext/       # Contexto para temas
 │   ├── styles/
-│   │   └── globalStyles.js    # Estilos globales y tema
+│   │   └── globalStyles.ts     # Estilos globales y tema
 │   └── utils/
-│       └── storage.js         # Utilidades para almacenamiento local
-├── App.js                     # Componente principal
+│       └── storage.ts          # Utilidades para almacenamiento local
+├── App.tsx                     # Componente principal
 └── package.json
 ```
 
@@ -86,6 +102,19 @@ BocMarket/
 3. Añade productos al carrito tocando "Añadir al Carrito"
 4. Ve al carrito tocando el botón del carrito
 5. Ajusta las cantidades y finaliza la compra
+
+### Caja Diaria
+1. Ve a la pestaña "Caja"
+2. Consulta las estadísticas de ventas del día
+3. Revisa los productos más vendidos
+4. Exporta reportes en formato CSV
+5. Gestiona devoluciones si es necesario
+
+### Información BOC
+1. Ve a la pestaña "BOC"
+2. Conoce más sobre el proyecto y el grupo
+3. Accede directamente a nuestro Spotify e Instagram
+4. Descubre por qué creamos esta aplicación
 
 ### Características Especiales
 - **Indicadores de Stock**: Los productos se marcan visualmente cuando están sin stock o con stock bajo
@@ -147,4 +176,13 @@ Si encuentras algún problema o tienes preguntas, por favor abre un issue en el 
 
 ---
 
-Desarrollado con ❤️ para la gestión de merchandising musical
+**Desarrollado con ❤️ por BOC para la gestión de merchandising musical**
+
+## 🎵 Conoce a BOC
+
+¿Te gusta nuestra app? ¡Descubre nuestra música!
+
+- **🎧 Spotify**: [BOC en Spotify](https://open.spotify.com/artist/2PDFLRIcrPY7IhDWsaKXHO?si=8n0l3gZtRcufXrAYHDYZRA)
+- **📷 Instagram**: [@boc.oficial](https://www.instagram.com/boc.oficial/)
+
+*Este proyecto es completamente gratuito y open-source, creado con amor por el grupo BOC.*
