@@ -102,7 +102,7 @@ export default function App(): React.JSX.Element {
   if (!appReady) {
     return (
       <>
-        <StatusBar style="dark" backgroundColor="#F8FAFC" />
+        <StatusBar style="dark" backgroundColor={colors.light} translucent={false} />
         <Navigation currentTab={currentTab} onTabChange={setCurrentTab}>
           <View style={[globalStyles.container, globalStyles.center]}>
             <Text style={{ fontSize: 48, marginBottom: 20 }}>🎵</Text>
@@ -120,7 +120,7 @@ export default function App(): React.JSX.Element {
 
   return (
     <>
-      <StatusBar style="dark" backgroundColor="#F8FAFC" />
+      <StatusBar style="dark" backgroundColor={colors.light} translucent={false} />
       <Navigation currentTab={currentTab} onTabChange={setCurrentTab}>
         {renderScreen()}
       </Navigation>

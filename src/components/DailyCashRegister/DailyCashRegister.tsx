@@ -13,12 +13,14 @@ import { getDailySalesReport, exportDailySalesCSV } from '../../utils/storage';
 import { StatCard } from './components/StatCard';
 import { SaleItem } from './components/SaleItem';
 import { TopProducts } from './components/TopProducts';
+import ReturnsScreen from '../../screens/ReturnsScreen';
 import { styles } from './styles';
 import type { DailyReport } from '../../types';
 
 const DailyCashRegister: React.FC = () => {
   const [report, setReport] = useState<DailyReport | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [showReturns, setShowReturns] = useState<boolean>(false);
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().split('T')[0]
   );
@@ -160,14 +162,6 @@ const DailyCashRegister: React.FC = () => {
             })}
           </Text>
         </View>
-
-        <TouchableOpacity
-          style={styles.exportButton}
-          onPress={handleExportCSV}
-          disabled={loading}
-        >
-          <Text style={styles.exportButtonText}>📊 Exportar</Text>
-        </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -224,6 +218,34 @@ const DailyCashRegister: React.FC = () => {
           </>
         )}
       </ScrollView>
+
+      {/* Barra de acciones fija en la parte inferior */}
+      <View style={styles.bottomActionBar}>
+        <TouchableOpacity
+          style={[styles.actionButton, styles.exportButton]}
+          onPress={handleExportCSV}
+          disabled={loading}
+        >
+          <Text style={styles.actionButtonText}>📊 Exportar</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.actionButton, styles.returnsButton]}
+          onPress={() => setShowReturns(true)}
+        >
+          <Text style={styles.actionButtonText}>🔄 Devoluciones</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Modal de devoluciones */}
+      <ReturnsScreen
+        visible={showReturns}
+        onClose={() => {
+          setShowReturns(false);
+          // Recargar el reporte después de cerrar devoluciones
+          loadDailyReport();
+        }}
+      />
     </View>
   );
 };

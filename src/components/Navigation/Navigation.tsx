@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, TouchableOpacity, Text } from 'react-native';
+import { View, TouchableOpacity, Text, SafeAreaView, Platform, StatusBar } from 'react-native';
 import type { NavigationProps, TabType } from '../../types';
 import { styles } from './styles';
 
@@ -25,35 +25,37 @@ const Navigation: React.FC<NavigationProps> = ({
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.content}>
-        {children}
-      </View>
-      
-      <View style={styles.tabBar}>
-        {tabs.map((tab) => (
-          <TouchableOpacity
-            key={tab.key}
-            style={[
-              styles.tab,
-              currentTab === tab.key && styles.activeTab,
-            ]}
-            onPress={() => handleTabPress(tab.key)}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.tabIcon}>{tab.icon}</Text>
-            <Text
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <View style={styles.content}>
+          {children}
+        </View>
+        
+        <View style={styles.tabBar}>
+          {tabs.map((tab) => (
+            <TouchableOpacity
+              key={tab.key}
               style={[
-                styles.tabText,
-                currentTab === tab.key && styles.activeTabText,
+                styles.tab,
+                currentTab === tab.key && styles.activeTab,
               ]}
+              onPress={() => handleTabPress(tab.key)}
+              activeOpacity={0.7}
             >
-              {tab.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
+              <Text style={styles.tabIcon}>{tab.icon}</Text>
+              <Text
+                style={[
+                  styles.tabText,
+                  currentTab === tab.key && styles.activeTabText,
+                ]}
+              >
+                {tab.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 

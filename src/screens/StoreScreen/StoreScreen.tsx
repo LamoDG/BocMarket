@@ -139,6 +139,53 @@ const StoreScreen: React.FC = () => {
     }
   };
 
+  const handleCartCheckout = async (paymentMethod: PaymentMethod): Promise<void> => {
+    console.log('🛒 === CART CHECKOUT INICIADO ===');
+    console.log('💳 Método de pago seleccionado:', paymentMethod);
+    console.log('📦 Cart length:', cart.length);
+    console.log('💰 Total:', calculateTotal());
+    
+    if (cart.length === 0) {
+      Alert.alert('Carrito vacío', 'Añade productos al carrito antes de finalizar la compra');
+      return;
+    }
+
+    // Verificar stock antes de proceder
+    let stockError = false;
+    for (const cartItem of cart) {
+      const product = products.find(p => p.id === cartItem.productId);
+      if (!product) {
+        Alert.alert('Error', `Producto no encontrado: ${cartItem.productId}`);
+        return;
+      }
+      
+      let availableStock = 0;
+      if (cartItem.variantName && product.hasVariants) {
+        const variant = product.variants.find(v => v.name === cartItem.variantName);
+        availableStock = variant ? variant.quantity : 0;
+      } else {
+        availableStock = product.quantity;
+      }
+      
+      if (cartItem.quantity > availableStock) {
+        Alert.alert(
+          'Stock insuficiente', 
+          `No hay suficiente stock para ${product.name}${cartItem.variantName ? ` - ${cartItem.variantName}` : ''}.\nDisponible: ${availableStock}, Solicitado: ${cartItem.quantity}`
+        );
+        stockError = true;
+        break;
+      }
+    }
+    
+    if (stockError) {
+      await loadProducts(); // Recargar productos para actualizar stock
+      return;
+    }
+
+    // Ir directamente a confirmPurchase ya que el método de pago fue seleccionado
+    confirmPurchase(paymentMethod);
+  };
+
   const handleCheckout = async (): Promise<void> => {
     console.log('🛒 === HANDLECHECKOUT INICIADO ===');
     console.log('📦 Cart length:', cart.length);
@@ -146,6 +193,38 @@ const StoreScreen: React.FC = () => {
     
     if (cart.length === 0) {
       Alert.alert('Carrito vacío', 'Añade productos al carrito antes de finalizar la compra');
+      return;
+    }
+
+    // Verificar stock antes de proceder
+    let stockError = false;
+    for (const cartItem of cart) {
+      const product = products.find(p => p.id === cartItem.productId);
+      if (!product) {
+        Alert.alert('Error', `Producto no encontrado: ${cartItem.productId}`);
+        return;
+      }
+      
+      let availableStock = 0;
+      if (cartItem.variantName && product.hasVariants) {
+        const variant = product.variants.find(v => v.name === cartItem.variantName);
+        availableStock = variant ? variant.quantity : 0;
+      } else {
+        availableStock = product.quantity;
+      }
+      
+      if (cartItem.quantity > availableStock) {
+        Alert.alert(
+          'Stock insuficiente', 
+          `No hay suficiente stock para ${product.name}${cartItem.variantName ? ` - ${cartItem.variantName}` : ''}.\nDisponible: ${availableStock}, Solicitado: ${cartItem.quantity}`
+        );
+        stockError = true;
+        break;
+      }
+    }
+    
+    if (stockError) {
+      await loadProducts(); // Recargar productos para actualizar stock
       return;
     }
 
@@ -174,20 +253,35 @@ const StoreScreen: React.FC = () => {
       async () => {
         console.log('🚀 Procesando compra...');
         
+        // Mostrar indicador de carga
+        Alert.alert('Procesando...', 'Por favor espera mientras procesamos tu compra', [], { cancelable: false });
+        
         try {
+          console.log('📋 Cart antes de processPurchase:', JSON.stringify(cart, null, 2));
+          
           const result = await processPurchase(paymentMethod);
           
-          console.log('📊 Resultado de processPurchase:', result);
+          console.log('📊 Resultado de processPurchase:', JSON.stringify(result, null, 2));
           
-          if (result.success) {
-            // Verificar que todo se procesó correctamente
-            await verifyCartEmpty();
+          if (result.success && result.sale) {
+            console.log('✅ Compra exitosa, verificando carrito...');
             
-            console.log('✅ Compra exitosa, mostrando confirmación');
+            // Verificar que el carrito se vació correctamente
+            const currentCart = await getCart();
+            console.log('🛒 Carrito después de compra:', currentCart.length);
+            
+            if (currentCart.length > 0) {
+              console.warn('⚠️ El carrito no se vació completamente');
+              // Forzar limpieza del carrito
+              await removeFromCart(''); // Esto debería limpiar todo
+            }
             
             // Recargar todos los datos después de la compra
+            console.log('🔄 Recargando datos...');
             await loadData();
             setShowCart(false);
+            
+            console.log('✅ Datos recargados, mostrando confirmación de éxito');
             
             // Verificar configuración de email para envío automático
             const emailConfig = await getEmailConfig();
@@ -198,18 +292,26 @@ const StoreScreen: React.FC = () => {
               console.log('📧 Enviando ticket automáticamente por email...');
               showSuccessWithAutoEmail(result.sale, paymentMethod);
             } else {
-              // Mostrar opciones de ticket
+              console.log('📄 Mostrando opciones de ticket...');
               showReceiptOptions({ sale: result.sale, paymentMethod });
             }
             
-            console.log('🔄 Datos recargados después de compra');
           } else {
             console.error('❌ Error en compra:', result.message);
-            Alert.alert('Error en la compra', result.message);
+            Alert.alert(
+              'Error en la compra', 
+              result.message || 'No se pudo completar la compra. Por favor, inténtalo de nuevo.',
+              [{ text: 'OK' }]
+            );
           }
         } catch (error) {
           console.error('❌ Error procesando compra:', error);
-          Alert.alert('Error', 'Ocurrió un error al procesar la compra');
+          const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+          Alert.alert(
+            'Error', 
+            `Ocurrió un error al procesar la compra: ${errorMessage}`,
+            [{ text: 'OK' }]
+          );
         }
       },
       () => {
@@ -255,7 +357,7 @@ const StoreScreen: React.FC = () => {
         products={products}
         onUpdateQuantity={handleUpdateCartQuantity}
         onRemove={handleRemoveFromCart}
-        onCheckout={handleCheckout}
+        onCheckout={handleCartCheckout}
         total={calculateTotal()}
       />
     );

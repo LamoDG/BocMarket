@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, FlatList } from 'react-native';
-import { CartItem as CartItemType, Product } from '../../types';
+import { CartItem as CartItemType, Product, PaymentMethod } from '../../types';
 import { CartItem } from './CartItem';
+import { showPaymentModal } from '../../screens/StoreScreen/components/PaymentModals';
 import { styles } from './styles';
 
 interface CartProps {
@@ -9,7 +10,7 @@ interface CartProps {
   products: Product[];
   onUpdateQuantity: (cartItemKey: string, newQuantity: number) => void;
   onRemove: (cartItemKey: string) => void;
-  onCheckout: () => void;
+  onCheckout: (paymentMethod: PaymentMethod) => void;
   total: number;
 }
 
@@ -60,21 +61,31 @@ export const Cart: React.FC<CartProps> = ({
     console.log('📞 onCheckout exists:', !!onCheckout);
     console.log('📞 onCheckout type:', typeof onCheckout);
     
-    if (onCheckout) {
-      console.log('✅ Ejecutando onCheckout...');
-      try {
-        onCheckout();
-        console.log('✅ onCheckout ejecutado');
-      } catch (error) {
-        console.error('❌ Error ejecutando onCheckout:', error);
-        if (error instanceof Error) {
-          alert('Error: ' + error.message);
-        }
-      }
-    } else {
+    if (!onCheckout) {
       console.error('❌ onCheckout no está definido');
       alert('Error: onCheckout no está definido');
+      return;
     }
+
+    // Mostrar modal de selección de método de pago
+    showPaymentModal({
+      total,
+      onPaymentSelect: (paymentMethod: PaymentMethod) => {
+        console.log('✅ Usuario seleccionó método de pago:', paymentMethod);
+        try {
+          onCheckout(paymentMethod);
+          console.log('✅ onCheckout ejecutado con método:', paymentMethod);
+        } catch (error) {
+          console.error('❌ Error ejecutando onCheckout:', error);
+          if (error instanceof Error) {
+            alert('Error: ' + error.message);
+          }
+        }
+      },
+      onCancel: () => {
+        console.log('❌ Usuario canceló selección de método de pago');
+      }
+    });
   };
 
   return (

@@ -43,6 +43,37 @@ export const styles = StyleSheet.create({
     color: colors.white,
     fontWeight: '600',
   },
+  actionButtons: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  actionButton: {
+    flex: 1,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+  },
+  returnsButton: {
+    backgroundColor: colors.secondary,
+  },
+  actionButtonText: {
+    fontSize: typography.md,
+    color: colors.white,
+    fontWeight: '600',
+  },
+  bottomActionBar: {
+    flexDirection: 'row',
+    backgroundColor: colors.white,
+    padding: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.lightGray,
+    gap: spacing.sm,
+    ...shadows.small,
+  },
   content: {
     flex: 1,
   },

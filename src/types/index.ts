@@ -41,6 +41,32 @@ export interface Sale {
   timestamp: number;
 }
 
+// Return Types
+export interface ReturnItem {
+  productId: string;
+  productName: string;
+  variant: string | null;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+  originalSaleId: string;
+}
+
+export interface Return {
+  id: string;
+  date: string;
+  items: ReturnItem[];
+  totalAmount: number;
+  reason: string;
+  originalSaleId: string;
+  timestamp: number;
+}
+
+export interface ReturnResult extends ApiResponse {
+  return?: Return;
+  updatedProducts?: boolean;
+}
+
 // Daily Cash Register Types
 export interface DailyReport {
   date: string;

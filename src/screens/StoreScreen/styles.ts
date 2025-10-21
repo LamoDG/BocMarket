@@ -11,11 +11,13 @@ export const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: spacing.md,
-    paddingTop: spacing.lg,
+    paddingTop: spacing.md, // Reducido desde spacing.lg para mejor uso del espacio
     paddingBottom: spacing.md,
     backgroundColor: colors.white,
     borderBottomWidth: 1,
     borderBottomColor: colors.lightGray,
+    // Asegurar que el header tenga espacio seguro
+    minHeight: 60,
   },
   headerTitle: {
     fontSize: typography.xxl,
@@ -24,11 +26,13 @@ export const styles = StyleSheet.create({
   cartButton: {
     backgroundColor: colors.primary,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.md, // Aumentado desde spacing.sm para mayor área de toque
     borderRadius: borderRadius.md,
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
+    minHeight: 44, // Área de toque mínima recomendada
+    minWidth: 80,
   },
   cartButtonText: {
     fontSize: typography.md,

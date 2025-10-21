@@ -7,7 +7,10 @@ import type {
   EmailConfig, 
   PurchaseResult, 
   EmailResult,
-  ApiResponse 
+  ApiResponse,
+  Return,
+  ReturnItem,
+  ReturnResult
 } from '../types';
 
 // Storage Keys
@@ -17,6 +20,7 @@ const APP_STATE_KEY = 'bocmarket_app_state';
 const SALES_KEY = 'bocmarket_sales';
 const DAILY_SALES_KEY = 'bocmarket_daily_sales';
 const EMAIL_CONFIG_KEY = 'bocmarket_email_config';
+const RETURNS_KEY = 'bocmarket_returns';
 
 // ============================================
 // PRODUCT MANAGEMENT
@@ -266,36 +270,61 @@ export const verifyCartEmpty = async (): Promise<{ isEmpty: boolean; cartLength:
 // ============================================
 
 export const processPurchase = async (paymentMethod: 'efectivo' | 'tarjeta' = 'efectivo'): Promise<PurchaseResult> => {
+  console.log('🏪 === PROCESANDO COMPRA ===');
+  console.log('💳 Método de pago:', paymentMethod);
+  
   try {
     const cart = await getCart();
     const products = await getProducts();
     
+    console.log('🛒 Carrito cargado:', cart.length, 'items');
+    console.log('📦 Productos cargados:', products.length, 'productos');
+    
     if (cart.length === 0) {
+      console.error('❌ El carrito está vacío');
       throw new Error('El carrito está vacío');
     }
+    
+    console.log('🔍 Verificando disponibilidad de stock...');
     
     // Verify availability
     for (const cartItem of cart) {
       const product = products.find(p => p.id === cartItem.productId);
       if (!product) {
+        console.error(`❌ Producto no encontrado: ${cartItem.productId}`);
         throw new Error(`Producto no encontrado: ${cartItem.productId}`);
       }
       
+      console.log(`📋 Verificando: ${product.name} - Cantidad solicitada: ${cartItem.quantity}`);
+      
       if (cartItem.variantName) {
         const variant = product.variants?.find(v => v.name === cartItem.variantName);
-        if (!variant || variant.quantity < cartItem.quantity) {
-          throw new Error(`Stock insuficiente para ${product.name} - ${cartItem.variantName}`);
+        if (!variant) {
+          console.error(`❌ Variante no encontrada: ${cartItem.variantName}`);
+          throw new Error(`Variante no encontrada: ${product.name} - ${cartItem.variantName}`);
         }
+        if (variant.quantity < cartItem.quantity) {
+          console.error(`❌ Stock insuficiente para variante: ${variant.name}, disponible: ${variant.quantity}, solicitado: ${cartItem.quantity}`);
+          throw new Error(`Stock insuficiente para ${product.name} - ${cartItem.variantName}. Disponible: ${variant.quantity}, solicitado: ${cartItem.quantity}`);
+        }
+        console.log(`✅ Stock OK para ${product.name} - ${variant.name}: ${variant.quantity} >= ${cartItem.quantity}`);
       } else {
         if (product.quantity < cartItem.quantity) {
-          throw new Error(`Stock insuficiente para ${product.name}`);
+          console.error(`❌ Stock insuficiente para producto: ${product.name}, disponible: ${product.quantity}, solicitado: ${cartItem.quantity}`);
+          throw new Error(`Stock insuficiente para ${product.name}. Disponible: ${product.quantity}, solicitado: ${cartItem.quantity}`);
         }
+        console.log(`✅ Stock OK para ${product.name}: ${product.quantity} >= ${cartItem.quantity}`);
       }
     }
+    
+    console.log('✅ Verificación de stock completada');
     
     // Create sale record
     const saleId = Date.now().toString();
     const saleDate = new Date();
+    
+    console.log('📝 Creando registro de venta con ID:', saleId);
+    
     const sale: Sale = {
       id: saleId,
       date: saleDate.toISOString(),
@@ -318,18 +347,27 @@ export const processPurchase = async (paymentMethod: 'efectivo' | 'tarjeta' = 'e
       timestamp: saleDate.getTime()
     };
     
+    console.log('💰 Total de la venta:', sale.totalAmount);
+    console.log('📦 Items de la venta:', sale.items.length);
+    
     // Update inventory
+    console.log('📦 Actualizando inventario...');
+    
     const updatedProducts = products.map(product => {
       const cartItems = cart.filter(item => item.productId === product.id);
       
       if (cartItems.length > 0) {
+        console.log(`🔄 Actualizando stock para: ${product.name}`);
+        
         if (product.hasVariants) {
           const updatedVariants = product.variants.map(variant => {
             const variantCartItem = cartItems.find(item => item.variantName === variant.name);
             if (variantCartItem) {
+              const newQuantity = variant.quantity - variantCartItem.quantity;
+              console.log(`  - ${variant.name}: ${variant.quantity} → ${newQuantity}`);
               return {
                 ...variant,
-                quantity: variant.quantity - variantCartItem.quantity
+                quantity: newQuantity
               };
             }
             return variant;
@@ -343,19 +381,33 @@ export const processPurchase = async (paymentMethod: 'efectivo' | 'tarjeta' = 'e
           };
         } else {
           const cartItem = cartItems[0];
+          const newQuantity = product.quantity - cartItem.quantity;
+          console.log(`  - Stock: ${product.quantity} → ${newQuantity}`);
           return {
             ...product,
-            quantity: product.quantity - cartItem.quantity
+            quantity: newQuantity
           };
         }
       }
       return product;
     });
     
+    console.log('💾 Guardando cambios...');
+    
     // Save everything
-    await saveProducts(updatedProducts);
-    await saveSale(sale);
+    const productsSaved = await saveProducts(updatedProducts);
+    const saleSaved = await saveSale(sale);
     const emptyCart = await clearCart();
+    
+    console.log('✅ Productos guardados:', productsSaved);
+    console.log('✅ Venta guardada:', saleSaved);
+    console.log('✅ Carrito vaciado:', emptyCart.length === 0);
+    
+    if (!productsSaved || !saleSaved) {
+      throw new Error('Error al guardar los datos de la compra');
+    }
+    
+    console.log('🎉 === COMPRA COMPLETADA EXITOSAMENTE ===');
     
     return { 
       success: true, 
@@ -364,10 +416,11 @@ export const processPurchase = async (paymentMethod: 'efectivo' | 'tarjeta' = 'e
       emptyCart: emptyCart.length === 0 
     };
   } catch (error) {
-    console.error('❌ Error al procesar compra:', error);
+    console.error('❌ === ERROR EN PROCESAMIENTO DE COMPRA ===');
+    console.error('❌ Error details:', error);
     return { 
       success: false, 
-      message: error instanceof Error ? error.message : 'Error desconocido' 
+      message: error instanceof Error ? error.message : 'Error desconocido en el procesamiento de la compra'
     };
   }
 };
@@ -973,4 +1026,162 @@ const generateReceiptText = (sale: Sale): string => {
   receipt += '\n¡Gracias por tu compra!';
   
   return receipt;
+};
+
+// === FUNCIONES DE DEVOLUCIONES ===
+
+export const getReturns = async (): Promise<Return[]> => {
+  try {
+    const returns = await AsyncStorage.getItem(RETURNS_KEY);
+    return returns ? JSON.parse(returns) : [];
+  } catch (error) {
+    console.error('❌ Error cargando devoluciones:', error);
+    return [];
+  }
+};
+
+export const saveReturns = async (returns: Return[]): Promise<boolean> => {
+  try {
+    await AsyncStorage.setItem(RETURNS_KEY, JSON.stringify(returns));
+    console.log('✅ Devoluciones guardadas:', returns.length);
+    return true;
+  } catch (error) {
+    console.error('❌ Error guardando devoluciones:', error);
+    return false;
+  }
+};
+
+interface ProcessReturnParams {
+  originalSaleId: string;
+  items: ReturnItem[];
+  reason: string;
+}
+
+export const processReturn = async (params: ProcessReturnParams): Promise<ReturnResult> => {
+  try {
+    console.log('🔄 === PROCESANDO DEVOLUCIÓN ===');
+    console.log('📋 Parámetros:', JSON.stringify(params, null, 2));
+
+    const { originalSaleId, items, reason } = params;
+
+    // Validar parámetros
+    if (!originalSaleId || !items || items.length === 0 || !reason) {
+      return {
+        success: false,
+        message: 'Parámetros de devolución incompletos'
+      };
+    }
+
+    // Cargar datos necesarios
+    const [products, returns, sales] = await Promise.all([
+      getProducts(),
+      getReturns(),
+      getSales()
+    ]);
+
+    // Verificar que la venta original existe
+    const originalSale = sales.find(sale => sale.id === originalSaleId);
+    if (!originalSale) {
+      return {
+        success: false,
+        message: 'Venta original no encontrada'
+      };
+    }
+
+    // Validar que los items a devolver pertenecen a la venta original
+    for (const returnItem of items) {
+      const originalItem = originalSale.items.find(
+        item => item.productId === returnItem.productId && 
+                item.variant === returnItem.variant
+      );
+      
+      if (!originalItem) {
+        return {
+          success: false,
+          message: `El producto ${returnItem.productName} no pertenece a esta venta`
+        };
+      }
+
+      if (returnItem.quantity > originalItem.quantity) {
+        return {
+          success: false,
+          message: `Cantidad a devolver mayor que la cantidad original para ${returnItem.productName}`
+        };
+      }
+    }
+
+    // Crear la devolución
+    const returnId = Date.now().toString();
+    const returnRecord: Return = {
+      id: returnId,
+      date: new Date().toISOString(),
+      items: items,
+      totalAmount: items.reduce((total, item) => total + item.totalPrice, 0),
+      reason: reason,
+      originalSaleId: originalSaleId,
+      timestamp: Date.now()
+    };
+
+    console.log('📝 Devolución creada:', JSON.stringify(returnRecord, null, 2));
+
+    // Actualizar inventario - devolver productos al stock
+    const updatedProducts = [...products];
+    
+    for (const returnItem of items) {
+      const productIndex = updatedProducts.findIndex(p => p.id === returnItem.productId);
+      
+      if (productIndex === -1) {
+        console.warn(`⚠️ Producto no encontrado en inventario: ${returnItem.productId}`);
+        continue;
+      }
+
+      const product = updatedProducts[productIndex];
+      
+      if (returnItem.variant && product.hasVariants) {
+        // Producto con variantes
+        const variantIndex = product.variants.findIndex(v => v.name === returnItem.variant);
+        if (variantIndex !== -1) {
+          const oldQuantity = product.variants[variantIndex].quantity;
+          product.variants[variantIndex].quantity += returnItem.quantity;
+          console.log(`🔄 Stock actualizado para ${product.name} - ${returnItem.variant}: ${oldQuantity} → ${product.variants[variantIndex].quantity}`);
+        }
+      } else {
+        // Producto sin variantes
+        const oldQuantity = product.quantity;
+        product.quantity += returnItem.quantity;
+        console.log(`🔄 Stock actualizado para ${product.name}: ${oldQuantity} → ${product.quantity}`);
+      }
+    }
+
+    // Guardar cambios
+    const updatedReturns = [...returns, returnRecord];
+    
+    const [productsSaved, returnsSaved] = await Promise.all([
+      saveProducts(updatedProducts),
+      saveReturns(updatedReturns)
+    ]);
+
+    if (!productsSaved || !returnsSaved) {
+      return {
+        success: false,
+        message: 'Error guardando los cambios de la devolución'
+      };
+    }
+
+    console.log('✅ === DEVOLUCIÓN COMPLETADA EXITOSAMENTE ===');
+    
+    return {
+      success: true,
+      message: 'Devolución procesada correctamente',
+      return: returnRecord,
+      updatedProducts: true
+    };
+
+  } catch (error) {
+    console.error('❌ Error procesando devolución:', error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Error desconocido'
+    };
+  }
 };
